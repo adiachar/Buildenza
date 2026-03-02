@@ -1,8 +1,13 @@
 import NextAuth, { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
+import GoogleProvider from "next-auth/providers/google"
 
 export const authOptions: NextAuthOptions = {
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || "mock-client-id",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "mock-client-secret",
+    }),
     CredentialsProvider({
       name: "Credentials (Dev Only)",
       credentials: {
@@ -24,6 +29,10 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: "jwt",
+  },
+  pages: {
+    signIn: '/auth/signin',
+    newUser: '/auth/signup',
   },
   callbacks: {
     async session({ session, token }) {

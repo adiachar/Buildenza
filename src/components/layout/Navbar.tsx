@@ -12,7 +12,7 @@ export async function Navbar() {
           <div className="w-6 h-6 rounded bg-black/5 flex items-center justify-center border border-black/10">
             <div className="w-2 h-2 rounded-full bg-black shadow-[0_0_10px_rgba(0,0,0,0.5)]"></div>
           </div>
-          AIVid
+          Buildnza
         </Link>
 
         <div className="flex items-center gap-6 text-sm font-medium text-black/70">
@@ -29,9 +29,14 @@ export async function Navbar() {
               </Link>
             </>
           ) : (
-            <Link href="/api/auth/signin" className="px-4 py-2 rounded-full bg-black text-white hover:bg-black/90 transition-colors shadow-md">
-              Sign In
-            </Link>
+            <>
+              <Link href="/auth/signin" className="hover:text-black transition-colors">
+                Sign In
+              </Link>
+              <Link href="/auth/signup" className="px-4 py-2 rounded-full bg-black text-white hover:bg-black/90 transition-colors shadow-md">
+                Sign Up
+              </Link>
+            </>
           )}
         </div>
       </div>

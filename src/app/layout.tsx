@@ -7,7 +7,7 @@ import { CursorTracker } from "@/components/ui/CursorTracker"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "AIVid | Learn AI Video Generation",
+  title: "Buildnza | Learn AI Video Generation",
   description: "Create modern 3D AI videos. Learn how to generate AI videos.",
 }
 
