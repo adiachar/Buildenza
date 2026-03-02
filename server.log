@@ -2,17 +2,18 @@
 > my-app@0.1.0 dev
 > next dev
 
+ ⚠ Port 3000 is in use, trying 3001 instead.
    ▲ Next.js 14.1.0
-   - Local:        http://localhost:3000
+   - Local:        http://localhost:3001
    - Environments: .env
 
- ✓ Ready in 1874ms
- ○ Compiling / ...
- ✓ Compiled / in 10s (1576 modules)
- ✓ Compiled in 921ms (660 modules)
- ✓ Compiled in 163ms (646 modules)
- ✓ Compiled /api/auth/[...nextauth] in 443ms (261 modules)
-Authorize error PrismaClientInitializationError:
+ ✓ Ready in 3s
+ ○ Compiling /auth/signup ...
+ ✓ Compiled /auth/signup in 9s (1632 modules)
+ ✓ Compiled in 1088ms (687 modules)
+ ○ Compiling /api/auth/signup ...
+ ✓ Compiled /api/auth/signup in 919ms (1627 modules)
+Signup error: PrismaClientInitializationError:
 Invalid `prisma.user.findUnique()` invocation:
 
 
@@ -21,16 +22,12 @@ Error in connector: Error creating a database connection. (Kind: An error occurr
     at Un.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:6771)
     at Un.request (/app/node_modules/@prisma/client/runtime/library.js:121:6478)
     at async l (/app/node_modules/@prisma/client/runtime/library.js:130:9644)
-    at async Object.authorize (webpack-internal:///(rsc)/./src/lib/auth.ts:30:32)
-    at async Object.callback (webpack-internal:///(rsc)/./node_modules/next-auth/core/routes/callback.js:291:20)
-    at async AuthHandler (webpack-internal:///(rsc)/./node_modules/next-auth/core/index.js:294:38)
-    at async NextAuthRouteHandler (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:50:30)
-    at async NextAuth._args$ (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:85:24)
+    at async POST (webpack-internal:///(rsc)/./src/app/api/auth/signup/route.ts:22:30)
     at async /app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:63809
     at async eU.execute (/app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:53964)
     at async eU.handle (/app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:65062)
     at async doRender (/app/node_modules/next/dist/server/base-server.js:1333:42)
-    at async cacheEntry.responseCache.get.routeKind (/app/node_modules/next/dist/server/base-server.js:1543:40)
+    at async cacheEntry.responseCache.get.routeKind (/app/node_modules/next/dist/server/base-server.js:1555:28)
     at async DevServer.renderToResponseWithComponentsImpl (/app/node_modules/next/dist/server/base-server.js:1463:28)
     at async DevServer.renderPageComponent (/app/node_modules/next/dist/server/base-server.js:1856:24)
     at async DevServer.renderToResponseImpl (/app/node_modules/next/dist/server/base-server.js:1894:32)
@@ -47,124 +44,3 @@ Error in connector: Error creating a database connection. (Kind: An error occurr
   clientVersion: '6.4.1',
   errorCode: undefined
 }
- ○ Compiling /learn ...
- ✓ Compiled /learn in 935ms (1556 modules)
- ○ Compiling /dashboard ...
- ✓ Compiled /dashboard in 525ms (1572 modules)
- ✓ Compiled in 668ms (1586 modules)
- ✓ Compiled in 317ms (662 modules)
- ✓ Compiled in 225ms (662 modules)
- ✓ Compiled in 219ms (662 modules)
- ○ Compiling /api/auth/[...nextauth] ...
- ✓ Compiled /api/auth/[...nextauth] in 521ms (260 modules)
-Authorize error PrismaClientInitializationError:
-Invalid `prisma.user.findUnique()` invocation:
-
-
-Error in connector: Error creating a database connection. (Kind: An error occurred during DNS resolution: no record found for Query { name: Name("_mongodb._tcp.cluster0.z2l5w.mongodb.net."), query_type: SRV, query_class: IN }, labels: {})
-    at Un.handleRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:7748)
-    at Un.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:121:6771)
-    at Un.request (/app/node_modules/@prisma/client/runtime/library.js:121:6478)
-    at async l (/app/node_modules/@prisma/client/runtime/library.js:130:9644)
-    at async Object.authorize (webpack-internal:///(rsc)/./src/app/api/auth/[...nextauth]/route.ts:35:32)
-    at async Object.callback (webpack-internal:///(rsc)/./node_modules/next-auth/core/routes/callback.js:291:20)
-    at async AuthHandler (webpack-internal:///(rsc)/./node_modules/next-auth/core/index.js:294:38)
-    at async NextAuthRouteHandler (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:50:30)
-    at async NextAuth._args$ (webpack-internal:///(rsc)/./node_modules/next-auth/next/index.js:85:24)
-    at async /app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:63809
-    at async eU.execute (/app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:53964)
-    at async eU.handle (/app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:65062)
-    at async doRender (/app/node_modules/next/dist/server/base-server.js:1333:42)
-    at async cacheEntry.responseCache.get.routeKind (/app/node_modules/next/dist/server/base-server.js:1543:40)
-    at async DevServer.renderToResponseWithComponentsImpl (/app/node_modules/next/dist/server/base-server.js:1463:28)
-    at async DevServer.renderPageComponent (/app/node_modules/next/dist/server/base-server.js:1856:24)
-    at async DevServer.renderToResponseImpl (/app/node_modules/next/dist/server/base-server.js:1894:32)
-    at async DevServer.pipeImpl (/app/node_modules/next/dist/server/base-server.js:911:25)
-    at async NextNodeServer.handleCatchallRenderRequest (/app/node_modules/next/dist/server/next-server.js:271:17)
-    at async DevServer.handleRequestImpl (/app/node_modules/next/dist/server/base-server.js:807:17)
-    at async /app/node_modules/next/dist/server/dev/next-dev-server.js:331:20
-    at async Span.traceAsyncFn (/app/node_modules/next/dist/trace/trace.js:151:20)
-    at async DevServer.handleRequest (/app/node_modules/next/dist/server/dev/next-dev-server.js:328:24)
-    at async invokeRender (/app/node_modules/next/dist/server/lib/router-server.js:163:21)
-    at async handleRequest (/app/node_modules/next/dist/server/lib/router-server.js:342:24)
-    at async requestHandlerImpl (/app/node_modules/next/dist/server/lib/router-server.js:366:13)
-    at async Server.requestListener (/app/node_modules/next/dist/server/lib/start-server.js:140:13) {
-  clientVersion: '6.4.1',
-  errorCode: undefined
-}
- ✓ Compiled /learn in 236ms (908 modules)
- ✓ Compiled /dashboard in 169ms (923 modules)
- ✓ Compiled in 1471ms (1564 modules)
- ✓ Compiled /api/auth/[...nextauth] in 169ms (905 modules)
- ✓ Compiled / in 324ms (923 modules)
- ✓ Compiled /dashboard in 180ms (938 modules)
- ✓ Compiled in 6.6s (1564 modules)
- ✓ Compiled in 1682ms (1564 modules)
- ✓ Compiled in 686ms (1564 modules)
- ✓ Compiled in 1065ms (662 modules)
- ✓ Compiled in 627ms (1564 modules)
- ✓ Compiled in 212ms (662 modules)
- ✓ Compiled in 1517ms (1564 modules)
- ✓ Compiled / in 248ms (920 modules)
- ✓ Compiled in 6.6s (1564 modules)
- ✓ Compiled in 4.3s (1550 modules)
- ✓ Compiled in 1244ms (1550 modules)
- ✓ Compiled in 610ms (1564 modules)
- ✓ Compiled in 420ms (1564 modules)
- ✓ Compiled in 217ms (662 modules)
- ✓ Compiled in 630ms (1550 modules)
- ✓ Compiled in 398ms (1550 modules)
- ✓ Compiled in 1479ms (1564 modules)
- ✓ Compiled in 745ms (1565 modules)
- ✓ Compiled in 330ms (1565 modules)
- ✓ Compiled / in 479ms (921 modules)
- ○ Compiling /auth/signin ...
- ✓ Compiled /auth/signin in 1415ms (1653 modules)
- ✓ Compiled /auth/signup in 483ms (1659 modules)
- ✓ Compiled in 7.1s (1626 modules)
- ✓ Compiled in 684ms (1626 modules)
- ✓ Compiled in 754ms (1626 modules)
- ✓ Compiled in 646ms (1626 modules)
- ✓ Compiled in 526ms (1625 modules)
- ✓ Compiled in 222ms (705 modules)
- ✓ Compiled in 832ms (1611 modules)
- ✓ Compiled in 235ms (705 modules)
- ✓ Compiled in 493ms (1611 modules)
- ✓ Compiled in 425ms (1611 modules)
- ✓ Compiled in 404ms (1611 modules)
- ○ Compiling /learn/construction-timelapse ...
- ✓ Compiled /learn/construction-timelapse in 880ms (1617 modules)
- ⚠ ./src/app/learn/page.tsx
-Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
-
-Import trace for requested module:
-./src/app/learn/page.tsx
-
-./src/components/layout/Navbar.tsx
-Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
-
-Import trace for requested module:
-./src/components/layout/Navbar.tsx
-./src/app/layout.tsx
- ⚠ ./src/app/learn/page.tsx
-Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
-
-Import trace for requested module:
-./src/app/learn/page.tsx
-
-./src/components/layout/Navbar.tsx
-Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
-
-Import trace for requested module:
-./src/components/layout/Navbar.tsx
-./src/app/layout.tsx
- ✓ Compiled in 1836ms (1626 modules)
- ✓ Compiled in 431ms (1626 modules)
- ✓ Compiled in 1101ms (1626 modules)
- ✓ Compiled in 456ms (921 modules)
- ✓ Compiled in 6.4s (921 modules)
- ✓ Compiled in 1088ms (921 modules)
- ✓ Compiled in 529ms (921 modules)
- ✓ Compiled in 448ms (922 modules)
- ✓ Compiled in 1220ms (1613 modules)
- ✓ Compiled in 1336ms (705 modules)

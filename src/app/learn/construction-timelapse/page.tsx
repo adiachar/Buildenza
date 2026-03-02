@@ -104,7 +104,7 @@ export default async function ConstructionTimelapse() {
             <p className="text-lg text-black/70 mb-8 max-w-md">
               Unlock the exact prompts, tools, and secret methods used by top creators for just $5.
             </p>
-            <Link href="/auth/signup" className="px-8 py-4 bg-black text-white rounded-full font-bold hover:scale-105 transition-transform shadow-lg">
+            <Link href="/dashboard" className="px-8 py-4 bg-black text-white rounded-full font-bold hover:scale-105 transition-transform shadow-lg">
               Unlock Everything for $5
             </Link>
           </div>

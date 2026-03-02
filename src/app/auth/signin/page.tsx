@@ -3,17 +3,28 @@ import { signIn } from "next-auth/react"
 import { useState } from "react"
 import Link from "next/link"
 
+import { useRouter } from "next/navigation"
+
 export default function SignIn() {
+  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [errorMsg, setErrorMsg] = useState("")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    await signIn("credentials", {
+    setErrorMsg("")
+    const res = await signIn("credentials", {
       email,
       password,
-      callbackUrl: "/dashboard",
+      redirect: false,
     })
+
+    if (res?.ok) {
+      router.push("/dashboard")
+    } else {
+      setErrorMsg("Invalid email or password.")
+    }
   }
 
   const handleGoogleSignIn = () => {
@@ -40,6 +51,11 @@ export default function SignIn() {
         </div>
 
         <form className="relative z-10 mt-8 space-y-6" onSubmit={handleSubmit}>
+          {errorMsg && (
+            <div className="bg-red-50 text-red-500 p-3 rounded-md text-sm text-center">
+              {errorMsg}
+            </div>
+          )}
           <div className="space-y-4 rounded-md shadow-sm">
             <div>
               <label className="sr-only" htmlFor="email-address">Email address</label>

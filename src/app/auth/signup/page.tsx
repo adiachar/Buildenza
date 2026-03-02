@@ -3,13 +3,18 @@ import { signIn } from "next-auth/react"
 import { useState } from "react"
 import Link from "next/link"
 
+import { useRouter } from "next/navigation"
+
 export default function SignUp() {
+  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
+  const [errorMsg, setErrorMsg] = useState("")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setErrorMsg("")
     try {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
@@ -21,20 +26,25 @@ export default function SignUp() {
 
       if (!res.ok) {
         const errorData = await res.json()
-        console.error("Signup failed:", errorData.message)
-        alert(errorData.message)
+        setErrorMsg(errorData.message || "Signup failed")
         return
       }
 
       // If signup is successful, log them in automatically
-      await signIn("credentials", {
+      const signInRes = await signIn("credentials", {
         email,
         password,
-        callbackUrl: "/dashboard",
+        redirect: false,
       })
+
+      if (signInRes?.ok) {
+        router.push("/dashboard")
+      } else {
+        setErrorMsg("Failed to auto-login. Please sign in.")
+      }
     } catch (error) {
       console.error("Signup error:", error)
-      alert("An unexpected error occurred.")
+      setErrorMsg("An unexpected error occurred.")
     }
   }
 
@@ -62,6 +72,11 @@ export default function SignUp() {
         </div>
 
         <form className="relative z-10 mt-8 space-y-6" onSubmit={handleSubmit}>
+          {errorMsg && (
+            <div className="bg-red-50 text-red-500 p-3 rounded-md text-sm text-center">
+              {errorMsg}
+            </div>
+          )}
           <div className="space-y-4 rounded-md shadow-sm">
             <div>
               <label className="sr-only" htmlFor="name">Full Name</label>
