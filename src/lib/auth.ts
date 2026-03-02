@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
+import bcrypt from "bcryptjs"
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -25,25 +26,14 @@ export const authOptions: NextAuthOptions = {
             where: { email: credentials.email },
           })
 
-          if (!user) {
-            // For a real app, you would verify the password hash here before creating or returning
-            // But for this mockup learning platform, we can auto-create if not exists
-            // OR enforce actual signup.
-            // Let's create a new user to make it easy to test:
-            const newUser = await prisma.user.create({
-              data: {
-                email: credentials.email,
-                name: credentials.email.split('@')[0],
-                emailVerified: new Date(),
-                isPrime: false, // Default is false, they need to pay to upgrade
-              }
-            })
-            return {
-              id: newUser.id,
-              email: newUser.email,
-              name: newUser.name,
-              isPrime: newUser.isPrime,
-            }
+          if (!user || !user.password) {
+            return null
+          }
+
+          const passwordsMatch = await bcrypt.compare(credentials.password, user.password)
+
+          if (!passwordsMatch) {
+            return null
           }
 
           return {

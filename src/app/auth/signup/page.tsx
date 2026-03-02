@@ -10,14 +10,32 @@ export default function SignUp() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // In a real app, you would call an API route here to create the user,
-    // and then sign them in. Since we are using mock credentials in this environment,
-    // we'll just mock the sign in process directly.
-    await signIn("credentials", {
-      email,
-      password,
-      callbackUrl: "/dashboard",
-    })
+    try {
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password, name }),
+      })
+
+      if (!res.ok) {
+        const errorData = await res.json()
+        console.error("Signup failed:", errorData.message)
+        alert(errorData.message)
+        return
+      }
+
+      // If signup is successful, log them in automatically
+      await signIn("credentials", {
+        email,
+        password,
+        callbackUrl: "/dashboard",
+      })
+    } catch (error) {
+      console.error("Signup error:", error)
+      alert("An unexpected error occurred.")
+    }
   }
 
   const handleGoogleSignIn = () => {
