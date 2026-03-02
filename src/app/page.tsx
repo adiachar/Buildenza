@@ -28,17 +28,21 @@ export default function Home() {
         className="max-w-4xl w-full text-center space-y-12"
       >
         <motion.div variants={item} className="space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass border border-black/10 text-sm mb-4 text-black/70 shadow-sm">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-black/10 text-sm md:text-base mb-4 text-black/80 font-medium shadow-sm">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_#22c55e]"></span>
-            New: Learn 3D Video Generation
+            Learn How Viral AI Videos Are Really Built — Not Just Posted
           </div>
           <h1 className="text-6xl md:text-8xl font-black tracking-tighter">
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-black via-gray-700 to-gray-400">
-              Create AI Videos
+              Buildnza
+            </span>
+            <br />
+            <span className="text-4xl md:text-6xl text-black/80">
+              The Essence of Building
             </span>
           </h1>
-          <p className="text-xl md:text-2xl text-black/60 max-w-2xl mx-auto font-light">
-            Master the art of generative video, 3D animations, and prompt engineering in our interactive courses.
+          <p className="text-lg md:text-xl text-black/60 max-w-3xl mx-auto font-light leading-relaxed">
+            From AI-powered construction timelapses to cinematic AI movie scenes, you&apos;ll learn how creators actually build these videos step by step, using the right tools, prompts, and workflows that most people never talk about.
           </p>
         </motion.div>
 
@@ -60,9 +64,9 @@ export default function Home() {
 
         <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-24 text-left">
           {[
-            { title: "Generative Models", desc: "Understand Sora, Runway Gen-2, and Pika.", icon: <Video /> },
-            { title: "3D Workflows", desc: "Integrate AI with Blender and Unreal Engine.", icon: <Box /> },
-            { title: "Prompt Engineering", desc: "Write prompts that control camera and motion.", icon: <Code /> },
+            { title: "Construction Timelapses", desc: "Generate hyper-realistic progress videos using AI.", icon: <Video /> },
+            { title: "Cinematic Video Gen", desc: "Create short films and storytelling visuals.", icon: <Box /> },
+            { title: "Prompt Engineering", desc: "Structure professional-level prompts — not copied.", icon: <Code /> },
           ].map((feature, i) => (
             <div key={i} className="p-6 rounded-2xl glass-card relative group overflow-hidden border border-black/5 hover:border-black/10 text-black">
               <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">

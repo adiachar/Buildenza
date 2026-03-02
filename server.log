@@ -121,3 +121,44 @@ Error in connector: Error creating a database connection. (Kind: An error occurr
  ○ Compiling /auth/signin ...
  ✓ Compiled /auth/signin in 1415ms (1653 modules)
  ✓ Compiled /auth/signup in 483ms (1659 modules)
+ ✓ Compiled in 7.1s (1626 modules)
+ ✓ Compiled in 684ms (1626 modules)
+ ✓ Compiled in 754ms (1626 modules)
+ ✓ Compiled in 646ms (1626 modules)
+ ✓ Compiled in 526ms (1625 modules)
+ ✓ Compiled in 222ms (705 modules)
+ ✓ Compiled in 832ms (1611 modules)
+ ✓ Compiled in 235ms (705 modules)
+ ✓ Compiled in 493ms (1611 modules)
+ ✓ Compiled in 425ms (1611 modules)
+ ✓ Compiled in 404ms (1611 modules)
+ ○ Compiling /learn/construction-timelapse ...
+ ✓ Compiled /learn/construction-timelapse in 880ms (1617 modules)
+ ⚠ ./src/app/learn/page.tsx
+Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
+
+Import trace for requested module:
+./src/app/learn/page.tsx
+
+./src/components/layout/Navbar.tsx
+Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
+
+Import trace for requested module:
+./src/components/layout/Navbar.tsx
+./src/app/layout.tsx
+ ⚠ ./src/app/learn/page.tsx
+Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
+
+Import trace for requested module:
+./src/app/learn/page.tsx
+
+./src/components/layout/Navbar.tsx
+Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
+
+Import trace for requested module:
+./src/components/layout/Navbar.tsx
+./src/app/layout.tsx
+ ✓ Compiled in 1836ms (1626 modules)
+ ✓ Compiled in 431ms (1626 modules)
+ ✓ Compiled in 1101ms (1626 modules)
+ ✓ Compiled in 456ms (921 modules)
