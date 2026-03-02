@@ -21,14 +21,14 @@ export default function SignIn() {
     })
 
     if (res?.ok) {
-      router.push("/dashboard")
+      router.push("/")
     } else {
       setErrorMsg("Invalid email or password.")
     }
   }
 
   const handleGoogleSignIn = () => {
-    signIn("google", { callbackUrl: "/dashboard" })
+    signIn("google", { callbackUrl: "/" })
   }
 
   return (

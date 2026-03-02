@@ -38,7 +38,7 @@ export default function SignUp() {
       })
 
       if (signInRes?.ok) {
-        router.push("/dashboard")
+        router.push("/")
       } else {
         setErrorMsg("Failed to auto-login. Please sign in.")
       }
@@ -49,7 +49,7 @@ export default function SignUp() {
   }
 
   const handleGoogleSignIn = () => {
-    signIn("google", { callbackUrl: "/dashboard" })
+    signIn("google", { callbackUrl: "/" })
   }
 
   return (
