@@ -16,7 +16,7 @@ export function CursorTracker() {
   return (
     <>
       <motion.div
-        className="fixed top-0 left-0 w-8 h-8 rounded-full border border-white/30 pointer-events-none z-50 mix-blend-difference"
+        className="fixed top-0 left-0 w-8 h-8 rounded-full border border-black/30 pointer-events-none z-50 mix-blend-difference"
         animate={{
           x: mousePosition.x - 16,
           y: mousePosition.y - 16,
@@ -24,7 +24,7 @@ export function CursorTracker() {
         transition={{ type: "spring", stiffness: 500, damping: 28, mass: 0.5 }}
       />
       <motion.div
-        className="fixed top-0 left-0 w-2 h-2 rounded-full bg-white pointer-events-none z-50 mix-blend-difference"
+        className="fixed top-0 left-0 w-2 h-2 rounded-full bg-black pointer-events-none z-50 mix-blend-difference"
         animate={{
           x: mousePosition.x - 4,
           y: mousePosition.y - 4,
