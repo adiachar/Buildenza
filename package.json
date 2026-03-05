@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "pages:build": "npx @opennextjs/cloudflare build"
+    "pages:build": "npx @opennextjs/cloudflare build --dangerouslyUseUnsupportedNextVersion"
   },
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.7",
