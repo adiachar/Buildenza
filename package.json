@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "pages:build": "DATABASE_URL=\"mongodb://dummy\" npx @opennextjs/cloudflare build --dangerouslyUseUnsupportedNextVersion && rm -rf deploy && mkdir -p deploy && cp -rv .open-next/assets/* deploy/ && cp -v .open-next/worker.js deploy/_worker.js && cp -rv .open-next/cloudflare .open-next/middleware .open-next/server-functions .open-next/.build deploy/"
+    "pages:build": "DATABASE_URL=\"mongodb+srv://dummy:dummy@localhost/dummy?retryWrites=true&w=majority\" npx @opennextjs/cloudflare build --dangerouslyUseUnsupportedNextVersion && rm -rf deploy && mkdir -p deploy && cp -rv .open-next/assets/* deploy/ && cp -v .open-next/worker.js deploy/_worker.js && cp -rv .open-next/cloudflare .open-next/middleware .open-next/server-functions .open-next/.build deploy/"
   },
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.7",
