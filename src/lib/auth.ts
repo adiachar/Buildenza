@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma"
 import { compare } from "bcrypt-ts"
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(prisma as any),
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "mock-client-id",
