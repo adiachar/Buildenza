@@ -22,6 +22,7 @@ export default function SignIn() {
 
     if (res?.ok) {
       router.push("/")
+      router.refresh()
     } else {
       setErrorMsg("Invalid email or password.")
     }

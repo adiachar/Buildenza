@@ -1,10 +1,12 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import Link from "next/link"
-import { Lock, PlayCircle } from "lucide-react"
+import { Lock, PlayCircle, Crown } from "lucide-react"
 
 export default async function Learn() {
   const session = await getServerSession(authOptions)
+  const isPrime = (session?.user as any)?.isPrime
+
 
   const courses = [
     { id: "construction-timelapse", title: "AI Construction Timelapse Videos", duration: "Premium Inside", type: "Hybrid" },
@@ -15,9 +17,11 @@ export default async function Learn() {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12 text-black">
-      <div className="mb-12">
-        <h1 className="text-5xl font-black mb-4">Learning Materials</h1>
-        <p className="text-xl text-black/60">Below are the learning materials we provide. Learn how tools actually connect together to produce consistent, high-quality results.</p>
+      <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <h1 className="text-5xl font-black mb-4">Learning Materials</h1>
+          <p className="text-xl text-black/60">Below are the learning materials we provide. Learn how tools actually connect together to produce consistent, high-quality results.</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

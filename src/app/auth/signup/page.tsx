@@ -39,6 +39,7 @@ export default function SignUp() {
 
       if (signInRes?.ok) {
         router.push("/")
+        router.refresh()
       } else {
         setErrorMsg("Failed to auto-login. Please sign in.")
       }

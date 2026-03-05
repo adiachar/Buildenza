@@ -31,25 +31,87 @@ export function DashboardClient({ isPrime }: { isPrime: boolean }) {
     }, 250)
   }
 
+  const initializeRazorpay = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script")
+      script.src = "https://checkout.razorpay.com/v1/checkout.js"
+      script.onload = () => resolve(true)
+      script.onerror = () => resolve(false)
+      document.body.appendChild(script)
+    })
+  }
+
   const handleFakeBuy = async (plan: "monthly" | "yearly") => {
     setLoading(true)
     try {
-      const res = await fetch("/api/user/upgrade", {
+      const res = await initializeRazorpay()
+
+      if (!res) {
+        alert("Razorpay SDK Failed to load")
+        return
+      }
+
+      // Create Order
+      const orderRes = await fetch("/api/razorpay/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan }),
+        body: JSON.stringify({ plan })
       })
+      const orderData = await orderRes.json()
 
-      if (res.ok) {
-        setJustUpgraded(true)
-        triggerCelebration()
-        // Wait a moment so they can enjoy the celebration before router refresh
-        setTimeout(() => {
-          router.refresh()
-        }, 3500)
-      } else {
-        alert("Payment failed.")
+      if (!orderData.id) {
+        alert(orderData.message || "Something went wrong")
+        return
       }
+
+      // Initialize Checkout Modal
+      const options = {
+        key: orderData.key,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "Buildnza",
+        description: plan === "yearly" ? "Premium Yearly Access" : "Premium Monthly Access",
+        order_id: orderData.id,
+        theme: {
+          color: "#000000",
+        },
+        handler: async function (response: any) {
+          try {
+            // Verify Payment
+            const verifyRes = await fetch("/api/razorpay/verify", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            })
+            const verifyData = await verifyRes.json()
+
+            if (verifyData.success) {
+              setJustUpgraded(true)
+              triggerCelebration()
+              setTimeout(() => {
+                router.refresh()
+              }, 3500)
+            } else {
+              alert("Payment verification failed!")
+            }
+          } catch (error) {
+            console.error("Verification error:", error)
+          }
+        },
+      }
+
+      const rzp = new (window as any).Razorpay(options)
+      rzp.on("payment.failed", function (response: any) {
+        alert("Payment Failed: " + response.error.description)
+      })
+      rzp.open()
+
     } catch (e) {
       console.error(e)
       alert("An error occurred during payment.")

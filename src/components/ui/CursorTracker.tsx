@@ -3,11 +3,13 @@ import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 
 export function CursorTracker() {
+  const [mounted, setMounted] = useState(false)
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
 
   const [isHovering, setIsHovering] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     const updateMousePosition = (e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY })
     }
@@ -29,6 +31,8 @@ export function CursorTracker() {
       window.removeEventListener("mouseover", handleMouseOver)
     }
   }, [])
+
+  if (!mounted) return null
 
   return (
     <>

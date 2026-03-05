@@ -3,7 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
-import bcrypt from "bcryptjs"
+import { compare } from "bcrypt-ts"
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -30,7 +30,7 @@ export const authOptions: NextAuthOptions = {
             return null
           }
 
-          const passwordsMatch = await bcrypt.compare(credentials.password, user.password)
+          const passwordsMatch = await compare(credentials.password, user.password)
 
           if (!passwordsMatch) {
             return null

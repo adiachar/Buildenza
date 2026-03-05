@@ -17,8 +17,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} antialiased bg-[#fafafa] text-black min-h-screen selection:bg-black/10 selection:text-black relative overflow-x-hidden`}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className} antialiased bg-[#fafafa] text-black min-h-screen selection:bg-black/10 selection:text-black relative overflow-x-hidden`} suppressHydrationWarning>
         {/* Animated Background Blobs */}
         <div className="fixed inset-0 -z-10 overflow-hidden w-full h-full pointer-events-none flex justify-center">
           <div className="absolute top-0 -left-4 w-96 h-96 bg-blue-200/40 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
