@@ -4,6 +4,9 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import crypto from "crypto"
 
+// Force dynamic so Next.js doesn't evaluate this route at build time
+export const dynamic = "force-dynamic"
+
 export async function POST(req: Request) {
     try {
         const session = await getServerSession(authOptions)

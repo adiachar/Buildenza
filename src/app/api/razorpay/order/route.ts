@@ -3,10 +3,8 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import Razorpay from "razorpay"
 
-const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID as string,
-    key_secret: process.env.RAZORPAY_KEY_SECRET as string,
-})
+// Force dynamic so Next.js doesn't try to evaluate this route at build time
+export const dynamic = "force-dynamic"
 
 export async function POST(req: Request) {
     try {
@@ -16,16 +14,22 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
         }
 
+        // Initialize Razorpay inside the handler (not at module level)
+        // so env vars are available at request time, not build time
+        const razorpay = new Razorpay({
+            key_id: process.env.RAZORPAY_KEY_ID as string,
+            key_secret: process.env.RAZORPAY_KEY_SECRET as string,
+        })
+
         const body = await req.json()
         const { plan } = body
 
-        // Monthly is $5, Yearly is $10. Razorpay expects the smallest currency unit.
-        // For USD, 500 cents = $5. For INR, 500 paise = 5 INR.
+        // Monthly is $5 (500 cents), Yearly is $10 (1000 cents)
         const amount = plan === "yearly" ? 1000 : 500
         const currency = "USD"
 
         const options = {
-            amount: amount, // Amount in smallest currency unit
+            amount: amount,
             currency,
             receipt: `receipt_${(session.user as any).id}_${plan}`,
             notes: {
