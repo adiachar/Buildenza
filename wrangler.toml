@@ -1,7 +1,5 @@
 name = "buildnza"
-compatibility_date = "2024-03-20"
+main = ".open-next/worker.js"
+compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
-pages_build_output_dir = ".vercel/output/static"
-
-[env.production]
-# Add your environment variables here in the Cloudflare Dashboard instead
+pages_build_output_dir = ".open-next/assets"
