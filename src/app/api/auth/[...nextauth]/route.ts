@@ -1,6 +1,9 @@
 import NextAuth from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { getAuthOptions } from "@/lib/auth"
+import { NextRequest } from "next/server"
 
-const handler = NextAuth(authOptions)
+const handler = async (req: NextRequest, context: any) => {
+  return NextAuth(req, context, getAuthOptions())
+}
 
 export { handler as GET, handler as POST }

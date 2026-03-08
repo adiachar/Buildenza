@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/auth"
+import { getAuthOptions } from "@/lib/auth"
 import Razorpay from "razorpay"
 
 // Force dynamic so Next.js doesn't try to evaluate this route at build time
@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic"
 
 export async function POST(req: Request) {
     try {
-        const session = await getServerSession(authOptions)
+        const session = await getServerSession(getAuthOptions())
 
         if (!session?.user?.email) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 })

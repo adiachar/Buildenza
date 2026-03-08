@@ -1,9 +1,9 @@
 import Link from "next/link"
 import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/auth"
+import { getAuthOptions } from "@/lib/auth"
 
 export async function Navbar() {
-  const session = await getServerSession(authOptions)
+  const session = await getServerSession(getAuthOptions())
 
   return (
     <nav className="fixed top-0 w-full z-40 glass border-b border-black/5 backdrop-blur-md">
