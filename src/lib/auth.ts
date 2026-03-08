@@ -5,8 +5,9 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 import { compare } from "bcrypt-ts"
 
-export const authOptions: NextAuthOptions = {
+export const getAuthOptions = (): NextAuthOptions => ({
   adapter: PrismaAdapter(prisma as any),
+  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "mock-client-id",
@@ -81,4 +82,8 @@ export const authOptions: NextAuthOptions = {
       return token
     }
   },
-}
+})
+
+// Keep a constant export for local use/middleware if needed,
+// though dynamic fetching via getAuthOptions() is safer for Cloudflare Pages.
+export const authOptions: NextAuthOptions = getAuthOptions()

@@ -1,10 +1,10 @@
 import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/auth"
+import { getAuthOptions } from "@/lib/auth"
 import Link from "next/link"
 import { Lock, PlayCircle, Crown } from "lucide-react"
 
 export default async function Learn() {
-  const session = await getServerSession(authOptions)
+  const session = await getServerSession(getAuthOptions())
   const isPrime = (session?.user as any)?.isPrime
 
 
