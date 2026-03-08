@@ -4,4 +4,4 @@ compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "deploy"
 
 [vars]
-NEXTAUTH_URL = "https://8eb9686b.buildenza.pages.dev"
+NEXTAUTH_URL = "https://buildenza.pages.dev"
