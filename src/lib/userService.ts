@@ -1,5 +1,5 @@
 import { hash, compare } from "bcrypt-ts"
-import { query } from "./db"
+import { supabase } from "./db"
 
 interface User {
   id: string
@@ -10,26 +10,33 @@ interface User {
   createdAt: string
 }
 
+function mapRow(row: any): User {
+  return {
+    id: row.id.toString(),
+    email: row.email,
+    name: row.name,
+    password: row.password,
+    isPrime: row.is_prime,
+    createdAt: row.created_at,
+  }
+}
+
 export const userService = {
   async findUnique(where: { email: string }): Promise<User | null> {
     try {
-      const result = await query(
-        "SELECT id, email, name, password, is_prime as \"isPrime\", created_at as \"createdAt\" FROM users WHERE email = $1",
-        [where.email]
-      )
+      const { data, error } = await supabase
+        .from("users")
+        .select("id, email, name, password, is_prime, created_at")
+        .eq("email", where.email)
+        .maybeSingle()
 
-      if (result.rows.length === 0) {
+      if (error) {
+        console.error("Error finding user:", error)
         return null
       }
+      if (!data) return null
 
-      return {
-        id: result.rows[0].id.toString(),
-        email: result.rows[0].email,
-        name: result.rows[0].name,
-        password: result.rows[0].password,
-        isPrime: result.rows[0].isPrime,
-        createdAt: result.rows[0].createdAt.toISOString(),
-      }
+      return mapRow(data)
     } catch (error) {
       console.error("Error finding user:", error)
       return null
@@ -46,23 +53,21 @@ export const userService = {
       const hashedPassword = await hash(data.password, 5)
       const isPrime = data.isPrime ?? false
 
-      const result = await query(
-        "INSERT INTO users (email, name, password, is_prime) VALUES ($1, $2, $3, $4) RETURNING id, email, name, password, is_prime as \"isPrime\", created_at as \"createdAt\"",
-        [data.email, data.name, hashedPassword, isPrime]
-      )
+      const { data: row, error } = await supabase
+        .from("users")
+        .insert({
+          email: data.email,
+          name: data.name,
+          password: hashedPassword,
+          is_prime: isPrime,
+        })
+        .select("id, email, name, password, is_prime, created_at")
+        .single()
 
-      if (result.rows.length === 0) {
-        throw new Error("Failed to create user")
-      }
+      if (error) throw error
+      if (!row) throw new Error("Failed to create user")
 
-      return {
-        id: result.rows[0].id.toString(),
-        email: result.rows[0].email,
-        name: result.rows[0].name,
-        password: result.rows[0].password,
-        isPrime: result.rows[0].isPrime,
-        createdAt: result.rows[0].createdAt.toISOString(),
-      }
+      return mapRow(row)
     } catch (error) {
       console.error("Error creating user:", error)
       throw error
@@ -71,53 +76,28 @@ export const userService = {
 
   async update(id: string, data: Partial<User>): Promise<User | null> {
     try {
-      const updates: string[] = []
-      const values: any[] = [id]
-      let paramCount = 2
+      const updates: Record<string, any> = {}
+      if (data.isPrime !== undefined) updates.is_prime = data.isPrime
+      if (data.name !== undefined) updates.name = data.name
+      if (data.password !== undefined) updates.password = data.password
 
-      if (data.isPrime !== undefined) {
-        updates.push(`is_prime = $${paramCount}`)
-        values.push(data.isPrime)
-        paramCount++
-      }
-
-      if (data.name !== undefined) {
-        updates.push(`name = $${paramCount}`)
-        values.push(data.name)
-        paramCount++
-      }
-
-      if (data.password !== undefined) {
-        updates.push(`password = $${paramCount}`)
-        values.push(data.password)
-        paramCount++
-      }
-
-      if (updates.length === 0) {
+      if (Object.keys(updates).length === 0) {
         return await this.findUniqueById(id)
       }
 
-      const updateQuery = `
-        UPDATE users 
-        SET ${updates.join(", ")}, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $1
-        RETURNING id, email, name, password, is_prime as \"isPrime\", created_at as \"createdAt\"
-      `
+      updates.updated_at = new Date().toISOString()
 
-      const result = await query(updateQuery, values)
+      const { data: row, error } = await supabase
+        .from("users")
+        .update(updates)
+        .eq("id", id)
+        .select("id, email, name, password, is_prime, created_at")
+        .single()
 
-      if (result.rows.length === 0) {
-        return null
-      }
+      if (error) throw error
+      if (!row) return null
 
-      return {
-        id: result.rows[0].id.toString(),
-        email: result.rows[0].email,
-        name: result.rows[0].name,
-        password: result.rows[0].password,
-        isPrime: result.rows[0].isPrime,
-        createdAt: result.rows[0].createdAt.toISOString(),
-      }
+      return mapRow(row)
     } catch (error) {
       console.error("Error updating user:", error)
       throw error
@@ -126,23 +106,19 @@ export const userService = {
 
   async findUniqueById(id: string): Promise<User | null> {
     try {
-      const result = await query(
-        "SELECT id, email, name, password, is_prime as \"isPrime\", created_at as \"createdAt\" FROM users WHERE id = $1",
-        [id]
-      )
+      const { data, error } = await supabase
+        .from("users")
+        .select("id, email, name, password, is_prime, created_at")
+        .eq("id", id)
+        .maybeSingle()
 
-      if (result.rows.length === 0) {
+      if (error) {
+        console.error("Error finding user by ID:", error)
         return null
       }
+      if (!data) return null
 
-      return {
-        id: result.rows[0].id.toString(),
-        email: result.rows[0].email,
-        name: result.rows[0].name,
-        password: result.rows[0].password,
-        isPrime: result.rows[0].isPrime,
-        createdAt: result.rows[0].createdAt.toISOString(),
-      }
+      return mapRow(data)
     } catch (error) {
       console.error("Error finding user by ID:", error)
       return null
