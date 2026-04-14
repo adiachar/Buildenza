@@ -54,15 +54,24 @@ export async function POST(req: Request) {
       { status: 201 }
     )
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    const errorStack = error instanceof Error ? error.stack : undefined
+    
     console.error("Signup error details:", {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
+      error: errorMessage,
+      stack: errorStack,
       timestamp: new Date().toISOString(),
       url: req.url,
       method: req.method
     })
+    
+    // Return more details for debugging
     return NextResponse.json(
-      { message: "An error occurred during signup" },
+      { 
+        message: "An error occurred during signup",
+        error: errorMessage, // Include actual error for debugging
+        details: process.env.NODE_ENV === 'development' ? errorStack : undefined
+      },
       { status: 500 }
     )
   }

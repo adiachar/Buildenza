@@ -46,8 +46,16 @@ export default function SignUp() {
           errorData = { message: res.statusText || "Unknown error" }
         }
         
-        console.error("❌ Signup failed with status", res.status, errorData)
-        setErrorMsg(errorData.message || "Signup failed")
+        console.error("❌ Signup API error details:", {
+          status: res.status,
+          message: errorData.message,
+          actualError: errorData.error, // The real error from server
+          stack: errorData.details // Stack trace if available
+        })
+        
+        // Show the actual error to user if available
+        const errorToShow = errorData.error ? `${errorData.message} - ${errorData.error}` : errorData.message
+        setErrorMsg(errorToShow || "Signup failed")
         setIsLoading(false)
         document.body.style.cursor = 'default'
         return
