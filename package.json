@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "pages:build": "npx @opennextjs/cloudflare build --dangerouslyUseUnsupportedNextVersion && if exist deploy rmdir /s /q deploy && mkdir deploy && xcopy /e /i .open-next\\assets\\* deploy\\ && copy .open-next\\worker.js deploy\\_worker.js && xcopy /e /i .open-next\\cloudflare deploy\\cloudflare\\ && xcopy /e /i .open-next\\middleware deploy\\middleware\\ && xcopy /e /i .open-next\\server-functions deploy\\server-functions\\ && xcopy /e /i .open-next\\.build deploy\\.build\\ && node generate-routes.js"
+    "pages:build": "npx @opennextjs/cloudflare build --dangerouslyUseUnsupportedNextVersion && node build-deploy.js"
   },
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.7",
