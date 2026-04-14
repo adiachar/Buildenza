@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npx @opennextjs/cloudflare build --dangerouslyUseUnsupportedNextVersion && node build-deploy.js",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "pages:build": "npm run build"
+    "pages:build": "npx @opennextjs/cloudflare build --dangerouslyUseUnsupportedNextVersion && node build-deploy.js"
   },
   "dependencies": {
     "@stripe/stripe-js": "^9.2.0",
