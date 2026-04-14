@@ -1,14 +1,22 @@
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/auth"
+import { createClient, createAdminClient } from "@/lib/supabase/server"
 import Link from "next/link"
 import { Lock, PlayCircle, Unlock, ArrowRight, ShieldCheck, Zap } from "lucide-react"
 
 export default async function Learn() {
-  console.log("Learn page accessed")
-  const session = await getServerSession(authOptions)
-  console.log("Learn page session check:", { hasSession: !!session, userEmail: session?.user?.email, isPrime: (session?.user as any)?.isPrime })
-  const isPrime = Boolean((session?.user as any)?.isPrime)
-  console.log("Learn page isPrime:", isPrime)
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Fetch isPrime from our users table
+  let isPrime = false
+  if (user?.email) {
+    const admin = createAdminClient()
+    const { data } = await admin
+      .from("users")
+      .select("is_prime")
+      .eq("email", user.email)
+      .maybeSingle()
+    isPrime = data?.is_prime ?? false
+  }
 
   const courses = [
     { 

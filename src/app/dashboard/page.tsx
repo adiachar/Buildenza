@@ -1,21 +1,28 @@
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/auth"
+import { createClient, createAdminClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { DashboardClient } from "./DashboardClient"
 
 export default async function Dashboard() {
-  console.log("Dashboard page accessed")
-  const session = await getServerSession(authOptions)
-  console.log("Dashboard session check:", { hasSession: !!session, userEmail: session?.user?.email })
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session) {
-    console.warn("Dashboard access denied: no session")
+  if (!user) {
     redirect("/auth/signin")
   }
 
-  // Ensure isPrime is coerced to a boolean properly
-  const isPrime = Boolean((session.user as any).isPrime)
-  console.log("Dashboard user prime status:", isPrime)
+  // Fetch isPrime from our users table
+  let isPrime = false
+  if (user.email) {
+    const admin = createAdminClient()
+    const { data } = await admin
+      .from("users")
+      .select("is_prime")
+      .eq("email", user.email)
+      .maybeSingle()
+    isPrime = data?.is_prime ?? false
+  }
+
+  const displayName = user.user_metadata?.full_name || user.email?.split("@")[0] || "there"
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-16 font-sans">
@@ -25,21 +32,20 @@ export default async function Dashboard() {
           Manage your subscription and premium access.
         </p>
       </div>
-      
+
       <div className="bg-white rounded-[2rem] p-8 md:p-14 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 relative overflow-hidden mb-8">
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-50 to-purple-50 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
-        
+
         <div className="relative z-10">
           <div className="inline-block px-4 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-gray-600 text-sm font-bold uppercase tracking-widest mb-4">
             Account Status
           </div>
           <h2 className="text-3xl md:text-4xl font-black mb-4 text-gray-900">
-            Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{session.user?.name}</span>
+            Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{displayName}</span>
           </h2>
-          
+
           <div className="mt-8 border-t border-gray-100 pt-8">
-             {/* Render interactive subscription cards or premium success status */}
-             <DashboardClient isPrime={isPrime} />
+            <DashboardClient isPrime={isPrime} />
           </div>
         </div>
       </div>

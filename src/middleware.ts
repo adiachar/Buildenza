@@ -1,23 +1,46 @@
-import { withAuth } from "next-auth/middleware"
-import { NextResponse } from "next/server"
+import { createServerClient } from "@supabase/ssr"
+import { NextResponse, type NextRequest } from "next/server"
 
-export default withAuth(
-  function middleware(req) {
-    return NextResponse.next()
-  },
-  {
-    callbacks: {
-      authorized: ({ req, token }) => {
-        // If it's a learn route, require a valid token (must be logged in)
-        if (req.nextUrl.pathname.startsWith('/learn') || req.nextUrl.pathname.startsWith('/dashboard')) {
-          return token !== null
-        }
-        return true
-      }
+export async function middleware(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({ request })
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          )
+          supabaseResponse = NextResponse.next({ request })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          )
+        },
+      },
     }
+  )
+
+  // Refresh session — IMPORTANT: do not remove this
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const isProtected =
+    request.nextUrl.pathname.startsWith("/learn") ||
+    request.nextUrl.pathname.startsWith("/dashboard")
+
+  if (!user && isProtected) {
+    const redirectUrl = request.nextUrl.clone()
+    redirectUrl.pathname = "/auth/signin"
+    return NextResponse.redirect(redirectUrl)
   }
-)
+
+  return supabaseResponse
+}
 
 export const config = {
-  matcher: ['/learn/:path*', '/dashboard/:path*']
+  matcher: ["/learn/:path*", "/dashboard/:path*"],
 }
