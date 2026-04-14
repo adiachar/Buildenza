@@ -7,8 +7,8 @@ import { userService } from "./userService"
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || "mock-client-id",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "mock-client-secret",
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
     CredentialsProvider({
       name: "Credentials",
@@ -17,30 +17,15 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        console.log("Credentials authorize called with email:", credentials?.email ? "provided" : "missing")
-        if (!credentials?.email || !credentials?.password) {
-          console.warn("Authorize failed: missing credentials")
-          return null
-        }
+        if (!credentials?.email || !credentials?.password) return null
 
         try {
-          console.log("Looking up user in database for email:", credentials.email)
           const user = await userService.findUnique({ email: credentials.email })
+          if (!user) return null
 
-          if (!user) {
-            console.warn("Authorize failed: user not found for email:", credentials.email)
-            return null
-          }
-
-          console.log("Comparing passwords for user:", user.id)
           const passwordsMatch = await compare(credentials.password, user.password)
+          if (!passwordsMatch) return null
 
-          if (!passwordsMatch) {
-            console.warn("Authorize failed: password mismatch for user:", user.id)
-            return null
-          }
-
-          console.log("Credentials authorize successful for user:", user.id)
           return {
             id: user.id,
             email: user.email,
@@ -48,12 +33,7 @@ export const authOptions: NextAuthOptions = {
             isPrime: user.isPrime,
           }
         } catch (e) {
-          console.error("Authorize error details:", {
-            error: e instanceof Error ? e.message : String(e),
-            stack: e instanceof Error ? e.stack : undefined,
-            email: credentials.email,
-            timestamp: new Date().toISOString()
-          })
+          console.error("Authorize error:", e instanceof Error ? e.message : String(e))
           return null
         }
       }
@@ -67,25 +47,55 @@ export const authOptions: NextAuthOptions = {
     newUser: '/auth/signup',
   },
   callbacks: {
-    async session({ session, token }) {
-      console.log("Session callback called for token sub:", token.sub)
-      if (session.user && token.sub) {
-        (session.user as any).id = token.sub
-        ;(session.user as any).isPrime = token.isPrime
-        console.log("Session updated with user data:", { id: token.sub, isPrime: token.isPrime })
-      } else {
-        console.warn("Session callback: missing session.user or token.sub")
+    // Runs when any provider (Google, Credentials) signs in
+    async signIn({ user, account }) {
+      // Only run DB logic for Google OAuth
+      if (account?.provider === "google") {
+        try {
+          const existing = await userService.findUnique({ email: user.email! })
+          if (!existing) {
+            // First-time Google user — create them in database (no password needed)
+            const newUser = await userService.createGoogleUser({
+              email: user.email!,
+              name: user.name || user.email!.split("@")[0],
+            })
+            // Attach DB id and isPrime to user object so JWT callback picks it up
+            user.id = newUser.id
+            ;(user as any).isPrime = newUser.isPrime
+          } else {
+            // Returning Google user — attach their DB data
+            user.id = existing.id
+            ;(user as any).isPrime = existing.isPrime
+          }
+        } catch (e) {
+          console.error("Google signIn DB error:", e instanceof Error ? e.message : String(e))
+          return false // Block sign-in if DB fails
+        }
       }
-      return session
+      return true
     },
+
     async jwt({ token, user }) {
-      console.log("JWT callback called", { hasUser: !!user, tokenSub: token.sub })
       if (user) {
         token.sub = user.id
         token.isPrime = (user as any).isPrime
-        console.log("JWT token updated with user data:", { sub: user.id, isPrime: (user as any).isPrime })
       }
       return token
-    }
+    },
+
+    async session({ session, token }) {
+      if (session.user && token.sub) {
+        (session.user as any).id = token.sub
+        ;(session.user as any).isPrime = token.isPrime
+      }
+      return session
+    },
+
+    // Ensure Google users are redirected to /learn after sign-in
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) return `${baseUrl}${url}`
+      if (url.startsWith(baseUrl)) return url
+      return `${baseUrl}/learn`
+    },
   },
 }

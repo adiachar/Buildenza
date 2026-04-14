@@ -74,6 +74,33 @@ export const userService = {
     }
   },
 
+  // For Google OAuth users — no password required
+  async createGoogleUser(data: {
+    email: string
+    name: string
+  }): Promise<User> {
+    try {
+      const { data: row, error } = await supabase
+        .from("users")
+        .insert({
+          email: data.email,
+          name: data.name,
+          password: "", // empty — Google users never use password login
+          is_prime: false,
+        })
+        .select("id, email, name, password, is_prime, created_at")
+        .single()
+
+      if (error) throw error
+      if (!row) throw new Error("Failed to create Google user")
+
+      return mapRow(row)
+    } catch (error) {
+      console.error("Error creating Google user:", error)
+      throw error
+    }
+  },
+
   async update(id: string, data: Partial<User>): Promise<User | null> {
     try {
       const updates: Record<string, any> = {}
