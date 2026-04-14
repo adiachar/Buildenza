@@ -5,74 +5,125 @@ import confetti from "canvas-confetti"
 import { motion, AnimatePresence } from "framer-motion"
 import { Check, Star, Zap, PlayCircle } from "lucide-react"
 
+declare global {
+  interface Window {
+    Razorpay: any
+  }
+}
+
 export function DashboardClient({ isPrime }: { isPrime: boolean }) {
   const router = useRouter()
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState<"monthly" | "yearly" | null>(null)
   const [justUpgraded, setJustUpgraded] = useState(false)
 
   const triggerCelebration = () => {
     const duration = 3 * 1000
     const animationEnd = Date.now() + duration
     const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 }
-
     const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min
 
-    const interval: any = setInterval(function () {
+    const interval: any = setInterval(() => {
       const timeLeft = animationEnd - Date.now()
-
-      if (timeLeft <= 0) {
-        return clearInterval(interval)
-      }
-
+      if (timeLeft <= 0) return clearInterval(interval)
       const particleCount = 50 * (timeLeft / duration)
-      // since particles fall down, start a bit higher than random
       confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }))
       confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }))
     }, 250)
   }
 
-  useEffect(() => {
-    const query = new URLSearchParams(window.location.search)
-    if (query.get("success")) {
-      setJustUpgraded(true)
-      triggerCelebration()
-    }
-    if (query.get("canceled")) {
-      console.log("Order canceled")
-    }
-  }, [])
+  const loadRazorpayScript = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) return resolve(true)
+      const script = document.createElement("script")
+      script.src = "https://checkout.razorpay.com/v1/checkout.js"
+      script.onload = () => resolve(true)
+      script.onerror = () => resolve(false)
+      document.body.appendChild(script)
+    })
+  }
 
-  const handleFakeBuy = async (plan: "monthly" | "yearly") => {
-    console.log("Handle fake buy called with plan:", plan)
-    setLoading(true)
+  const handleBuy = async (plan: "monthly" | "yearly") => {
+    setLoading(plan)
+
     try {
-      console.log("Fetching Stripe checkout API")
-      const res = await fetch("/api/stripe/checkout", {
+      // Load Razorpay SDK
+      const loaded = await loadRazorpayScript()
+      if (!loaded) {
+        alert("Could not load Razorpay. Please check your internet connection.")
+        setLoading(null)
+        return
+      }
+
+      // Create order on server
+      const res = await fetch("/api/razorpay/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan })
+        body: JSON.stringify({ plan }),
       })
-      
-      const data = await res.json()
-      console.log("Stripe checkout response:", { status: res.status, hasUrl: !!data.url })
 
-      if (data.url) {
-        console.log("Redirecting to Stripe checkout URL")
-        window.location.href = data.url
-      } else {
-        console.error("Stripe checkout failed: no URL in response", data)
-        alert("Payment initialization failed")
+      if (!res.ok) {
+        const data = await res.json()
+        alert(data.message || "Failed to create payment order.")
+        setLoading(null)
+        return
       }
-    } catch (e) {
-      console.error("Stripe checkout error details:", {
-        error: e instanceof Error ? e.message : String(e),
-        stack: e instanceof Error ? e.stack : undefined,
-        plan,
-        timestamp: new Date().toISOString()
+
+      const order = await res.json()
+
+      // Open Razorpay checkout
+      const options = {
+        key: order.key,
+        amount: order.amount,
+        currency: order.currency,
+        name: "Buildenza",
+        description: plan === "yearly" ? "Yearly Premium Access" : "Monthly Premium Access",
+        order_id: order.id,
+        prefill: {
+          name: order.name,
+          email: order.email,
+        },
+        theme: { color: "#000000" },
+        handler: async (response: any) => {
+          try {
+            // Verify payment on server
+            const verifyRes = await fetch("/api/razorpay/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            })
+
+            const verifyData = await verifyRes.json()
+
+            if (verifyData.success) {
+              setJustUpgraded(true)
+              triggerCelebration()
+              router.refresh()
+            } else {
+              alert("Payment verification failed: " + verifyData.message)
+            }
+          } catch {
+            alert("An error occurred while verifying your payment.")
+          }
+        },
+        modal: {
+          ondismiss: () => setLoading(null),
+        },
+      }
+
+      const rzp = new window.Razorpay(options)
+      rzp.on("payment.failed", (response: any) => {
+        alert("Payment failed: " + response.error.description)
+        setLoading(null)
       })
-      alert("An error occurred during payment.")
-    } finally {
-      setLoading(false)
+      rzp.open()
+    } catch (e) {
+      console.error("Razorpay error:", e)
+      alert("An unexpected error occurred.")
+      setLoading(null)
     }
   }
 
@@ -82,7 +133,7 @@ export function DashboardClient({ isPrime }: { isPrime: boolean }) {
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="relative overflow-hidden p-10 mt-6 bg-gradient-to-br from-green-50 to-emerald-100/50 border border-green-200/50 rounded-3xl shadow-2xl glass-card flex flex-col items-center text-center"
+          className="relative overflow-hidden p-10 mt-6 bg-gradient-to-br from-green-50 to-emerald-100/50 border border-green-200/50 rounded-3xl shadow-2xl flex flex-col items-center text-center"
         >
           {justUpgraded && (
             <motion.div
@@ -118,49 +169,44 @@ export function DashboardClient({ isPrime }: { isPrime: boolean }) {
   return (
     <div className="mt-8 relative z-10 w-full">
       <div className="text-center mb-12">
-        <h2 className="text-4xl font-black tracking-tight mb-4 text-gray-900">
-          Unlock Premium Access
-        </h2>
+        <h2 className="text-4xl font-black tracking-tight mb-4 text-gray-900">Unlock Premium Access</h2>
         <p className="text-lg text-gray-500">Choose the plan that best fits your workflow.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
 
-        {/* 1 Month Plan */}
+        {/* Monthly Plan */}
         <div className="relative p-8 rounded-3xl border border-gray-200 flex flex-col transition-all duration-300 hover:shadow-xl hover:border-gray-300 hover:-translate-y-1 bg-gray-50/50">
           <div className="mb-8">
             <h3 className="text-2xl font-bold text-gray-900 mb-2">Monthly</h3>
             <p className="text-gray-500 h-10">Full access to all premium modules for 30 days.</p>
           </div>
           <div className="mb-8">
-            <span className="text-5xl font-black tracking-tighter text-gray-900">$5</span>
+            <span className="text-5xl font-black tracking-tighter text-gray-900">₹499</span>
             <span className="text-gray-500 font-medium ml-2">/month</span>
           </div>
-
           <ul className="space-y-4 mb-8 flex-grow">
-            {["Complete AI Video Workflows", "Premium Prompt Engineering", "Access to New Updates", "Cancel Anytime"].map((feature, i) => (
+            {["Complete AI Video Workflows", "Premium Prompt Engineering", "Access to New Updates", "Cancel Anytime"].map((f, i) => (
               <li key={i} className="flex items-center gap-3 text-gray-700 font-medium">
                 <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                   <Check className="w-4 h-4 text-green-600" />
                 </div>
-                {feature}
+                {f}
               </li>
             ))}
           </ul>
-
           <button
-            onClick={() => handleFakeBuy("monthly")}
-            disabled={loading}
-            className="w-full px-6 py-4 bg-gray-900 text-white rounded-2xl font-bold hover:bg-black transition-colors shadow-lg shadow-gray-900/20 disabled:opacity-50 disabled:cursor-not-allowed group"
+            onClick={() => handleBuy("monthly")}
+            disabled={!!loading}
+            className="w-full px-6 py-4 bg-gray-900 text-white rounded-2xl font-bold hover:bg-black transition-colors shadow-lg shadow-gray-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Processing..." : "Select Monthly Plan"}
+            {loading === "monthly" ? "Processing..." : "Select Monthly Plan"}
           </button>
         </div>
 
-        {/* 1 Year Plan - Highlighted */}
+        {/* Yearly Plan */}
         <div className="relative p-8 rounded-3xl border-2 border-yellow-400 flex flex-col transition-all duration-300 shadow-lg shadow-yellow-500/10 hover:shadow-2xl hover:shadow-yellow-500/20 hover:-translate-y-2 bg-gradient-to-b from-[#fffbeb] to-white z-10">
           <div className="absolute inset-0 bg-gradient-to-b from-yellow-500/5 to-transparent rounded-3xl pointer-events-none"></div>
-
           <div className="absolute -top-4 inset-x-0 flex justify-center">
             <div className="px-4 py-1.5 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white text-sm font-bold rounded-full uppercase tracking-wider shadow-lg shadow-yellow-500/30 flex items-center gap-1.5">
               <Zap className="w-4 h-4 fill-white" /> Most Popular
@@ -172,35 +218,40 @@ export function DashboardClient({ isPrime }: { isPrime: boolean }) {
             <p className="text-gray-500 h-10">Commit to mastering AI video and save big.</p>
           </div>
           <div className="mb-8 relative z-10">
-            <span className="text-5xl font-black tracking-tighter text-gray-900">$10</span>
+            <span className="text-5xl font-black tracking-tighter text-gray-900">₹999</span>
             <span className="text-gray-500 font-medium ml-2">/year</span>
             <div className="mt-2 inline-block px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-md">
-              Save $50 annually
+              Save ₹3,989 annually
             </div>
           </div>
 
           <ul className="space-y-4 mb-8 flex-grow relative z-10">
-            {["Everything in Monthly", "Priority Email Support", "1-on-1 Workflow Review", "Secret VIP Discord Access"].map((feature, i) => (
+            {["Everything in Monthly", "Priority Email Support", "1-on-1 Workflow Review", "Secret VIP Discord Access"].map((f, i) => (
               <li key={i} className="flex items-center gap-3 text-gray-800 font-bold">
                 <div className="w-6 h-6 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
                   <Check className="w-4 h-4 text-yellow-600" />
                 </div>
-                {feature}
+                {f}
               </li>
             ))}
           </ul>
 
           <button
-            onClick={() => handleFakeBuy("yearly")}
-            disabled={loading}
+            onClick={() => handleBuy("yearly")}
+            disabled={!!loading}
             className="relative z-10 w-full px-6 py-4 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white rounded-2xl font-bold hover:from-yellow-500 hover:to-yellow-700 transition-all shadow-xl shadow-yellow-500/30 disabled:opacity-50 disabled:cursor-not-allowed group overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-            Select Yearly Plan
+            {loading === "yearly" ? "Processing..." : "Select Yearly Plan"}
           </button>
         </div>
 
       </div>
+
+      <p className="text-center text-sm text-gray-400 mt-8 flex items-center justify-center gap-2">
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Secured by Razorpay · 256-bit SSL Encryption
+      </p>
     </div>
   )
 }
