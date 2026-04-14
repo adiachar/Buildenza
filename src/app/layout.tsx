@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { Navbar } from "@/components/layout/Navbar"
@@ -27,7 +28,9 @@ export default function RootLayout({
           <div className="absolute inset-0 bg-white/40 backdrop-blur-[100px]"></div>
         </div>
 
-        <CursorTracker />
+        <Suspense fallback={null}>
+          <CursorTracker />
+        </Suspense>
         <Navbar />
         <main className="pt-24 min-h-[calc(100vh-64px)] pb-12 relative z-10">
           {children}
