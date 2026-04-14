@@ -27,8 +27,8 @@ export async function POST(req: Request) {
       )
     }
 
-    // Hash the password
-    const hashedPassword = await hash(password, 10)
+    // Hash the password using a 5-round threshold (reduces execution time below Cloudflare 50ms CPU limits)
+    const hashedPassword = await hash(password, 5)
 
     // Create the user in the database
     const newUser = await prisma.user.create({
