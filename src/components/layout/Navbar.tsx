@@ -12,7 +12,7 @@ export async function Navbar() {
           <div className="w-6 h-6 rounded bg-black/5 flex items-center justify-center border border-black/10">
             <div className="w-2 h-2 rounded-full bg-black shadow-[0_0_10px_rgba(0,0,0,0.5)]"></div>
           </div>
-          Buildnza
+          Buildenza
         </Link>
 
         <div className="flex items-center gap-6 text-sm font-medium text-black/70">

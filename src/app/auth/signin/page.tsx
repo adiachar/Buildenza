@@ -11,25 +11,38 @@ export default function SignIn() {
   const [password, setPassword] = useState("")
   const [errorMsg, setErrorMsg] = useState("")
 
+  const [isLoading, setIsLoading] = useState(false)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMsg("")
-    const res = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    })
+    setIsLoading(true)
+    document.body.style.cursor = 'wait'
+    
+    try {
+      const res = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      })
 
     if (res?.ok) {
-      router.push("/")
+      router.push("/learn")
       router.refresh()
     } else {
       setErrorMsg("Invalid email or password.")
+      setIsLoading(false)
+      document.body.style.cursor = 'default'
     }
+  } catch (err) {
+      setErrorMsg("An unexpected error occurred.")
+      setIsLoading(false)
+      document.body.style.cursor = 'default'
   }
+}
 
   const handleGoogleSignIn = () => {
-    signIn("google", { callbackUrl: "/" })
+    signIn("google", { callbackUrl: "/learn" })
   }
 
   return (
@@ -41,7 +54,7 @@ export default function SignIn() {
 
         <div className="relative z-10">
           <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-            Sign in to Buildnza
+            Sign in to Buildenza
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Or{" "}
@@ -91,9 +104,10 @@ export default function SignIn() {
           <div>
             <button
               type="submit"
-              className="group relative flex w-full justify-center rounded-xl bg-black py-3 px-4 text-sm font-semibold text-white hover:bg-black/90 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-all shadow-lg shadow-black/20"
+              disabled={isLoading}
+              className="group relative flex w-full justify-center rounded-xl bg-black py-3 px-4 text-sm font-semibold text-white hover:bg-black/90 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-all shadow-lg shadow-black/20 disabled:opacity-50"
             >
-              Sign In
+              {isLoading ? "Signing In..." : "Sign In"}
             </button>
           </div>
         </form>

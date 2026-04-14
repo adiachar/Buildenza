@@ -1,0 +1,6 @@
+
+Invalid `prisma.user.findFirst()` invocation:
+
+
+Cannot fetch data from service:
+Unable to connect to the Accelerate API. This may be due to a network or DNS issue. Please check your connection and the Accelerate connection string. For details, visit https://www.prisma.io/docs/accelerate/troubleshoot.

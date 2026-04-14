@@ -31,87 +31,33 @@ export function DashboardClient({ isPrime }: { isPrime: boolean }) {
     }, 250)
   }
 
-  const initializeRazorpay = () => {
-    return new Promise((resolve) => {
-      const script = document.createElement("script")
-      script.src = "https://checkout.razorpay.com/v1/checkout.js"
-      script.onload = () => resolve(true)
-      script.onerror = () => resolve(false)
-      document.body.appendChild(script)
-    })
-  }
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search)
+    if (query.get("success")) {
+      setJustUpgraded(true)
+      triggerCelebration()
+    }
+    if (query.get("canceled")) {
+      console.log("Order canceled")
+    }
+  }, [])
 
   const handleFakeBuy = async (plan: "monthly" | "yearly") => {
     setLoading(true)
     try {
-      const res = await initializeRazorpay()
-
-      if (!res) {
-        alert("Razorpay SDK Failed to load")
-        return
-      }
-
-      // Create Order
-      const orderRes = await fetch("/api/razorpay/order", {
+      const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan })
       })
-      const orderData = await orderRes.json()
+      
+      const data = await res.json()
 
-      if (!orderData.id) {
-        alert(orderData.message || "Something went wrong")
-        return
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        alert("Payment initialization failed")
       }
-
-      // Initialize Checkout Modal
-      const options = {
-        key: orderData.key,
-        amount: orderData.amount,
-        currency: orderData.currency,
-        name: "Buildnza",
-        description: plan === "yearly" ? "Premium Yearly Access" : "Premium Monthly Access",
-        order_id: orderData.id,
-        theme: {
-          color: "#000000",
-        },
-        handler: async function (response: any) {
-          try {
-            // Verify Payment
-            const verifyRes = await fetch("/api/razorpay/verify", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-              }),
-            })
-            const verifyData = await verifyRes.json()
-
-            if (verifyData.success) {
-              setJustUpgraded(true)
-              triggerCelebration()
-              setTimeout(() => {
-                router.refresh()
-              }, 3500)
-            } else {
-              alert("Payment verification failed!")
-            }
-          } catch (error) {
-            console.error("Verification error:", error)
-          }
-        },
-      }
-
-      const rzp = new (window as any).Razorpay(options)
-      rzp.on("payment.failed", function (response: any) {
-        alert("Payment Failed: " + response.error.description)
-      })
-      rzp.open()
-
     } catch (e) {
       console.error(e)
       alert("An error occurred during payment.")
@@ -144,8 +90,8 @@ export function DashboardClient({ isPrime }: { isPrime: boolean }) {
           </h3>
           <p className="text-lg text-green-800/80 mb-8 max-w-md">
             {justUpgraded
-              ? "Your payment was successful. You now have full access to all Buildnza premium video generation courses and secret workflows."
-              : "You have full access to all Buildnza premium video generation courses. Keep building!"}
+              ? "Your payment was successful. You now have full access to all Buildenza premium video generation courses and secret workflows."
+              : "You have full access to all Buildenza premium video generation courses. Keep building!"}
           </p>
           <button
             onClick={() => router.push("/learn")}
@@ -160,18 +106,18 @@ export function DashboardClient({ isPrime }: { isPrime: boolean }) {
   }
 
   return (
-    <div className="mt-8 relative z-10">
+    <div className="mt-8 relative z-10 w-full">
       <div className="text-center mb-12">
-        <h2 className="text-4xl font-black tracking-tight mb-4 text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-500">
+        <h2 className="text-4xl font-black tracking-tight mb-4 text-gray-900">
           Unlock Premium Access
         </h2>
-        <p className="text-lg text-gray-600">Choose the plan that best fits your workflow.</p>
+        <p className="text-lg text-gray-500">Choose the plan that best fits your workflow.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
 
         {/* 1 Month Plan */}
-        <div className="relative p-8 rounded-3xl glass-card border border-black/5 hover:border-black/20 flex flex-col transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 bg-white/40 backdrop-blur-xl">
+        <div className="relative p-8 rounded-3xl border border-gray-200 flex flex-col transition-all duration-300 hover:shadow-xl hover:border-gray-300 hover:-translate-y-1 bg-gray-50/50">
           <div className="mb-8">
             <h3 className="text-2xl font-bold text-gray-900 mb-2">Monthly</h3>
             <p className="text-gray-500 h-10">Full access to all premium modules for 30 days.</p>
@@ -202,7 +148,7 @@ export function DashboardClient({ isPrime }: { isPrime: boolean }) {
         </div>
 
         {/* 1 Year Plan - Highlighted */}
-        <div className="relative p-8 rounded-3xl border border-yellow-500/30 flex flex-col transition-all duration-300 hover:shadow-2xl hover:shadow-yellow-500/20 hover:-translate-y-2 bg-gradient-to-b from-white to-yellow-50/50 backdrop-blur-xl z-10">
+        <div className="relative p-8 rounded-3xl border-2 border-yellow-400 flex flex-col transition-all duration-300 shadow-lg shadow-yellow-500/10 hover:shadow-2xl hover:shadow-yellow-500/20 hover:-translate-y-2 bg-gradient-to-b from-[#fffbeb] to-white z-10">
           <div className="absolute inset-0 bg-gradient-to-b from-yellow-500/5 to-transparent rounded-3xl pointer-events-none"></div>
 
           <div className="absolute -top-4 inset-x-0 flex justify-center">

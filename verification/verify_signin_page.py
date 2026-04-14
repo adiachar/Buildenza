@@ -9,8 +9,8 @@ def test_signin_page():
         page.goto("http://localhost:3000/")
         page.wait_for_load_state("networkidle")
 
-        # Take a screenshot of the landing page to show the Buildnza name
-        page.screenshot(path="verification/landing_page_buildnza.png", full_page=True)
+        # Take a screenshot of the landing page to show the Buildenza name
+        page.screenshot(path="verification/landing_page_buildenza.png", full_page=True)
 
         # Click the Sign In link in the Navbar
         sign_in_link = page.locator("a", has_text="Sign In")

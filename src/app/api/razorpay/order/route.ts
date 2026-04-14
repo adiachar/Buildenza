@@ -31,7 +31,7 @@ export async function POST(req: Request) {
         const options = {
             amount: amount,
             currency,
-            receipt: `receipt_${(session.user as any).id}_${plan}`,
+            receipt: `rcpt_${(session.user as any).id}`.substring(0, 40),
             notes: {
                 userId: (session.user as any).id,
                 plan,
@@ -48,6 +48,7 @@ export async function POST(req: Request) {
         })
     } catch (err: any) {
         console.error("Razorpay Order Error:", err)
-        return NextResponse.json({ message: err.message }, { status: err.statusCode || 500 })
+        const errorMessage = err.error?.description || err.message || "Unknown Razorpay Error"
+        return NextResponse.json({ message: errorMessage }, { status: err.statusCode || 500 })
     }
 }

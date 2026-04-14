@@ -12,9 +12,14 @@ export default function SignUp() {
   const [name, setName] = useState("")
   const [errorMsg, setErrorMsg] = useState("")
 
+  const [isLoading, setIsLoading] = useState(false)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMsg("")
+    setIsLoading(true)
+    document.body.style.cursor = 'wait'
+    
     try {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
@@ -27,6 +32,8 @@ export default function SignUp() {
       if (!res.ok) {
         const errorData = await res.json()
         setErrorMsg(errorData.message || "Signup failed")
+        setIsLoading(false)
+        document.body.style.cursor = 'default'
         return
       }
 
@@ -38,19 +45,23 @@ export default function SignUp() {
       })
 
       if (signInRes?.ok) {
-        router.push("/")
+        router.push("/learn")
         router.refresh()
       } else {
         setErrorMsg("Failed to auto-login. Please sign in.")
+        setIsLoading(false)
+        document.body.style.cursor = 'default'
       }
     } catch (error) {
       console.error("Signup error:", error)
       setErrorMsg("An unexpected error occurred.")
+      setIsLoading(false)
+      document.body.style.cursor = 'default'
     }
   }
 
   const handleGoogleSignIn = () => {
-    signIn("google", { callbackUrl: "/" })
+    signIn("google", { callbackUrl: "/learn" })
   }
 
   return (
@@ -125,9 +136,10 @@ export default function SignUp() {
           <div>
             <button
               type="submit"
-              className="group relative flex w-full justify-center rounded-xl bg-black py-3 px-4 text-sm font-semibold text-white hover:bg-black/90 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-all shadow-lg shadow-black/20"
+              disabled={isLoading}
+              className="group relative flex w-full justify-center rounded-xl bg-black py-3 px-4 text-sm font-semibold text-white hover:bg-black/90 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-all shadow-lg shadow-black/20 disabled:opacity-50"
             >
-              Sign Up
+              {isLoading ? "Creating Account..." : "Sign Up"}
             </button>
           </div>
         </form>

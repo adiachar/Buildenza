@@ -18,10 +18,10 @@ export default function PromptEngineering() {
         <Lock className="w-16 h-16 text-black/20" />
         <h2 className="text-3xl font-bold">Premium Content</h2>
         <p className="text-lg text-black/60 max-w-md">
-          This material is currently being structured. It will be available soon as part of the Buildnza Premium Subscription.
+          This material is currently being structured. It will be available soon as part of the Buildenza Premium Subscription.
         </p>
         <Link href="/auth/signup" className="px-8 py-4 bg-black text-white rounded-full font-bold hover:scale-105 transition-transform shadow-lg mt-8 inline-block">
-          Join Buildnza Premium for $5
+          Join Buildenza Premium for $5
         </Link>
       </div>
     </div>

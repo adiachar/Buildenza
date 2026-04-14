@@ -1,4 +1,4 @@
-# Buildnza
+# Buildenza
 
 A modern, high-performance web application built with Next.js 14, Tailwind CSS, Framer Motion, and NextAuth.
 
@@ -6,7 +6,7 @@ A modern, high-performance web application built with Next.js 14, Tailwind CSS, 
 
 1. **Clone the repository:**
    `git clone <repository-url>`
-   `cd buildnza`
+   `cd buildenza`
 
 2. **Install dependencies:**
    `npm install`
