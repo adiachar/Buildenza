@@ -1,6 +1,5 @@
 import { hash, compare } from "bcrypt-ts"
-import fs from "fs"
-import path from "path"
+import { query } from "./db"
 
 interface User {
   id: string
@@ -11,57 +10,142 @@ interface User {
   createdAt: string
 }
 
-const USERS_FILE = path.join(process.cwd(), "users.json")
-
-// In-memory storage for development
-let users: User[] = []
-
-// Load users from file if it exists
-if (fs.existsSync(USERS_FILE)) {
-  try {
-    const data = fs.readFileSync(USERS_FILE, "utf8")
-    users = JSON.parse(data)
-  } catch (error) {
-    console.warn("Failed to load users from file:", error)
-  }
-}
-
-// Save users to file
-const saveUsers = () => {
-  try {
-    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2))
-  } catch (error) {
-    console.error("Failed to save users:", error)
-  }
-}
-
 export const userService = {
-  async findUnique(where: { email: string }) {
-    return users.find(user => user.email === where.email) || null
-  },
+  async findUnique(where: { email: string }): Promise<User | null> {
+    try {
+      const result = await query(
+        "SELECT id, email, name, password, is_prime as \"isPrime\", created_at as \"createdAt\" FROM users WHERE email = $1",
+        [where.email]
+      )
 
-  async create(data: { email: string; name: string; password: string; isPrime?: boolean }) {
-    const hashedPassword = await hash(data.password, 10)
-    const user: User = {
-      id: Date.now().toString(),
-      email: data.email,
-      name: data.name,
-      password: hashedPassword,
-      isPrime: data.isPrime ?? false,
-      createdAt: new Date().toISOString()
+      if (result.rows.length === 0) {
+        return null
+      }
+
+      return {
+        id: result.rows[0].id.toString(),
+        email: result.rows[0].email,
+        name: result.rows[0].name,
+        password: result.rows[0].password,
+        isPrime: result.rows[0].isPrime,
+        createdAt: result.rows[0].createdAt.toISOString(),
+      }
+    } catch (error) {
+      console.error("Error finding user:", error)
+      return null
     }
-
-    users.push(user)
-    saveUsers()
-    return user
   },
 
-  async update(id: string, data: Partial<User>) {
-    const userIndex = users.findIndex(user => user.id === id)
-    if (userIndex === -1) return null
+  async create(data: {
+    email: string
+    name: string
+    password: string
+    isPrime?: boolean
+  }): Promise<User> {
+    try {
+      const hashedPassword = await hash(data.password, 5)
+      const isPrime = data.isPrime ?? false
 
-    users[userIndex] = { ...users[userIndex], ...data }
-    saveUsers()
-    return users[userIndex]
-  }
+      const result = await query(
+        "INSERT INTO users (email, name, password, is_prime) VALUES ($1, $2, $3, $4) RETURNING id, email, name, password, is_prime as \"isPrime\", created_at as \"createdAt\"",
+        [data.email, data.name, hashedPassword, isPrime]
+      )
+
+      if (result.rows.length === 0) {
+        throw new Error("Failed to create user")
+      }
+
+      return {
+        id: result.rows[0].id.toString(),
+        email: result.rows[0].email,
+        name: result.rows[0].name,
+        password: result.rows[0].password,
+        isPrime: result.rows[0].isPrime,
+        createdAt: result.rows[0].createdAt.toISOString(),
+      }
+    } catch (error) {
+      console.error("Error creating user:", error)
+      throw error
+    }
+  },
+
+  async update(id: string, data: Partial<User>): Promise<User | null> {
+    try {
+      const updates: string[] = []
+      const values: any[] = [id]
+      let paramCount = 2
+
+      if (data.isPrime !== undefined) {
+        updates.push(`is_prime = $${paramCount}`)
+        values.push(data.isPrime)
+        paramCount++
+      }
+
+      if (data.name !== undefined) {
+        updates.push(`name = $${paramCount}`)
+        values.push(data.name)
+        paramCount++
+      }
+
+      if (data.password !== undefined) {
+        updates.push(`password = $${paramCount}`)
+        values.push(data.password)
+        paramCount++
+      }
+
+      if (updates.length === 0) {
+        return await this.findUniqueById(id)
+      }
+
+      const updateQuery = `
+        UPDATE users 
+        SET ${updates.join(", ")}, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $1
+        RETURNING id, email, name, password, is_prime as \"isPrime\", created_at as \"createdAt\"
+      `
+
+      const result = await query(updateQuery, values)
+
+      if (result.rows.length === 0) {
+        return null
+      }
+
+      return {
+        id: result.rows[0].id.toString(),
+        email: result.rows[0].email,
+        name: result.rows[0].name,
+        password: result.rows[0].password,
+        isPrime: result.rows[0].isPrime,
+        createdAt: result.rows[0].createdAt.toISOString(),
+      }
+    } catch (error) {
+      console.error("Error updating user:", error)
+      throw error
+    }
+  },
+
+  async findUniqueById(id: string): Promise<User | null> {
+    try {
+      const result = await query(
+        "SELECT id, email, name, password, is_prime as \"isPrime\", created_at as \"createdAt\" FROM users WHERE id = $1",
+        [id]
+      )
+
+      if (result.rows.length === 0) {
+        return null
+      }
+
+      return {
+        id: result.rows[0].id.toString(),
+        email: result.rows[0].email,
+        name: result.rows[0].name,
+        password: result.rows[0].password,
+        isPrime: result.rows[0].isPrime,
+        createdAt: result.rows[0].createdAt.toISOString(),
+      }
+    } catch (error) {
+      console.error("Error finding user by ID:", error)
+      return null
+    }
+  },
 }
