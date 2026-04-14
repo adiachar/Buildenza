@@ -1,31 +1,39 @@
-import { Pool } from "pg"
-
-// Create a connection pool for PostgreSQL
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
-})
-
-// Test the connection
-pool.on("error", (err) => {
-  console.error("Unexpected error on idle client", err)
-})
+import { Client } from "pg"
 
 export async function query(text: string, params?: any[]) {
   const start = Date.now()
+  
+  // In serverless/edge environments like Cloudflare, global network connections 
+  // shouldn't be maintained across requests because the isolate can be paused, 
+  // causing TCP sockets to arbitrarily die ("Connection terminated unexpectedly").
+  // Because you are using Supabase pgbouncer (port 6543), establishing a fresh short connection is extremely fast.
+  const client = new Client({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
+  })
+
   try {
-    const result = await pool.query(text, params)
+    await client.connect()
+    const result = await client.query(text, params)
     const duration = Date.now() - start
     console.log("Executed query", { text, duration, rows: result.rowCount })
     return result
   } catch (error) {
     console.error("Database query error:", error)
     throw error
+  } finally {
+    // Always clean up the socket so we don't leak handlers across Edge requests
+    await client.end()
   }
 }
 
+// Keeping this around just in case it's imported somewhere, though standard query() should be used.
 export async function getClient() {
-  const client = await pool.connect()
+  const client = new Client({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
+  })
+  await client.connect()
   return client
 }
 
@@ -44,7 +52,7 @@ export async function initializeDatabase() {
       );
 
       CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-    `
+    `;
 
     // Split queries and execute them separately
     const queries = createTableQuery
@@ -62,5 +70,3 @@ export async function initializeDatabase() {
     throw error
   }
 }
-
-export default pool
