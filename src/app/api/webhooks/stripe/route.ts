@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { headers } from "next/headers"
 import Stripe from "stripe"
-import { prisma } from "@/lib/prisma"
+import { userService } from "@/lib/userService"
 
 export async function POST(req: Request) {
     console.log("Stripe webhook received")
@@ -43,13 +43,8 @@ export async function POST(req: Request) {
         if (userId) {
             try {
                 console.log("Updating user premium status for userId:", userId)
-                await prisma.user.update({
-                    where: {
-                        id: userId,
-                    },
-                    data: {
-                        isPrime: true,
-                    }
+                await userService.update(userId, {
+                    isPrime: true,
                 })
                 console.log("User premium status updated successfully for userId:", userId)
             } catch (updateError: any) {

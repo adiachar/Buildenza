@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { userService } from "@/lib/userService"
 import { hash } from "bcrypt-ts"
 
 export const dynamic = "force-dynamic"
@@ -21,8 +21,8 @@ export async function POST(req: Request) {
 
     console.log("Checking for existing user with email:", email)
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
+    const existingUser = await userService.findUnique({
+      email,
     })
 
     if (existingUser) {
@@ -39,13 +39,11 @@ export async function POST(req: Request) {
 
     console.log("Creating new user in database")
     // Create the user in the database
-    const newUser = await prisma.user.create({
-      data: {
-        email,
-        name: name || email.split('@')[0],
-        password: hashedPassword,
-        isPrime: false, // Explicitly false for new users
-      },
+    const newUser = await userService.create({
+      email,
+      name: name || email.split('@')[0],
+      password: hashedPassword,
+      isPrime: false, // Explicitly false for new users
     })
 
     console.log("User created successfully:", { id: newUser.id, email: newUser.email })

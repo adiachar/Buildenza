@@ -1,12 +1,10 @@
 import { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
-import { PrismaAdapter } from "@next-auth/prisma-adapter"
-import { prisma } from "@/lib/prisma"
 import { compare } from "bcrypt-ts"
+import { userService } from "./userService"
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma as any),
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "mock-client-id",
@@ -27,17 +25,10 @@ export const authOptions: NextAuthOptions = {
 
         try {
           console.log("Looking up user in database for email:", credentials.email)
-          const user = await prisma.user.findUnique({
-            where: { email: credentials.email },
-          })
+          const user = await userService.findUnique({ email: credentials.email })
 
           if (!user) {
             console.warn("Authorize failed: user not found for email:", credentials.email)
-            return null
-          }
-
-          if (!user.password) {
-            console.warn("Authorize failed: user has no password (likely Google user) for email:", credentials.email)
             return null
           }
 

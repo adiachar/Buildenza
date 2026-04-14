@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { userService } from "@/lib/userService"
 import crypto from "crypto"
 
 // Force dynamic so Next.js doesn't evaluate this route at build time
@@ -33,9 +33,8 @@ export async function POST(req: Request) {
         // Upgrade the user to Premium
         const userId = (session.user as any).id
 
-        await prisma.user.update({
-            where: { id: userId },
-            data: { isPrime: true },
+        await userService.update(userId, {
+            isPrime: true,
         })
 
         return NextResponse.json({ message: "Payment verified successfully", success: true })
