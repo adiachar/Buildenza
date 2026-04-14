@@ -20,7 +20,9 @@ export default function SignUp() {
     setIsLoading(true)
     document.body.style.cursor = 'wait'
     
+    console.log("📝 Signup form submitted", { email, name: name || "not provided" })
     try {
+      console.log("🔄 Sending signup request to /api/auth/signup")
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: {
@@ -29,14 +31,29 @@ export default function SignUp() {
         body: JSON.stringify({ email, password, name }),
       })
 
+      console.log("📬 Signup API response:", { 
+        status: res.status, 
+        statusText: res.statusText,
+        contentType: res.headers.get('content-type')
+      })
+
       if (!res.ok) {
-        const errorData = await res.json()
+        let errorData
+        try {
+          errorData = await res.json()
+        } catch (parseError) {
+          console.error("❌ Failed to parse error response:", parseError)
+          errorData = { message: res.statusText || "Unknown error" }
+        }
+        
+        console.error("❌ Signup failed with status", res.status, errorData)
         setErrorMsg(errorData.message || "Signup failed")
         setIsLoading(false)
         document.body.style.cursor = 'default'
         return
       }
 
+      console.log("✅ Signup API successful, attempting auto-login")
       // If signup is successful, log them in automatically
       const signInRes = await signIn("credentials", {
         email,
@@ -44,16 +61,25 @@ export default function SignUp() {
         redirect: false,
       })
 
+      console.log("🔑 SignIn response:", { ok: signInRes?.ok, error: signInRes?.error })
+
       if (signInRes?.ok) {
+        console.log("✅ Auto-login successful, redirecting to /learn")
         router.push("/learn")
         router.refresh()
       } else {
+        console.error("❌ Auto-login failed:", signInRes?.error)
         setErrorMsg("Failed to auto-login. Please sign in.")
         setIsLoading(false)
         document.body.style.cursor = 'default'
       }
     } catch (error) {
-      console.error("Signup error:", error)
+      console.error("❌ Signup error details:", {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        email,
+        timestamp: new Date().toISOString()
+      })
       setErrorMsg("An unexpected error occurred.")
       setIsLoading(false)
       document.body.style.cursor = 'default'
