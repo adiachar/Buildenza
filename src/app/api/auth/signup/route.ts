@@ -57,19 +57,27 @@ export async function POST(req: Request) {
     const errorMessage = error instanceof Error ? error.message : String(error)
     const errorStack = error instanceof Error ? error.stack : undefined
     
+    // Check if it's a filesystem error (common in Cloudflare Workers)
+    const isFilesystemError = errorMessage.includes('fs.') || errorMessage.includes('[unenv]')
+    const isCritical = errorMessage.includes('DATABASE_URL') || isFilesystemError
+    
     console.error("Signup error details:", {
       error: errorMessage,
       stack: errorStack,
       timestamp: new Date().toISOString(),
       url: req.url,
-      method: req.method
+      method: req.method,
+      isFilesystemError,
+      isCritical,
+      hasDatabase: !!process.env.DATABASE_URL,
     })
     
     // Return more details for debugging
     return NextResponse.json(
       { 
-        message: "An error occurred during signup",
-        error: errorMessage, // Include actual error for debugging
+        message: isCritical ? "Server configuration error" : "An error occurred during signup",
+        error: errorMessage,
+        hint: isFilesystemError ? "Database connection issue - check DATABASE_URL environment variable" : undefined,
         details: process.env.NODE_ENV === 'development' ? errorStack : undefined
       },
       { status: 500 }

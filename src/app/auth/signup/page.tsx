@@ -49,13 +49,20 @@ export default function SignUp() {
         console.error("❌ Signup API error details:", {
           status: res.status,
           message: errorData.message,
-          actualError: errorData.error, // The real error from server
-          stack: errorData.details // Stack trace if available
+          actualError: errorData.error,
+          hint: errorData.hint,
+          stack: errorData.details
         })
         
         // Show the actual error to user if available
-        const errorToShow = errorData.error ? `${errorData.message} - ${errorData.error}` : errorData.message
-        setErrorMsg(errorToShow || "Signup failed")
+        let errorToShow = errorData.message || "Signup failed"
+        if (errorData.hint) {
+          errorToShow = `${errorToShow} - ${errorData.hint}`
+        } else if (errorData.error) {
+          errorToShow = `${errorToShow} - ${errorData.error}`
+        }
+        
+        setErrorMsg(errorToShow)
         setIsLoading(false)
         document.body.style.cursor = 'default'
         return

@@ -5,16 +5,29 @@ import { PrismaPg } from "@prisma/adapter-pg"
 const connectionString = `${process.env.DATABASE_URL}`
 console.log("Initializing Prisma with database URL:", connectionString ? "provided" : "missing")
 
+if (!connectionString) {
+  console.error("❌ CRITICAL: DATABASE_URL environment variable is not set!")
+  throw new Error("DATABASE_URL is required for database connection")
+}
+
 const pool = new Pool({ 
   connectionString,
-  ssl: { rejectUnauthorized: false }
+  ssl: { rejectUnauthorized: false },
+  max: 1, // Cloudflare Workers: use minimal connections
 })
+
 const adapter = new PrismaPg(pool)
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient }
 
-export const prisma = globalForPrisma.prisma || new PrismaClient({ adapter })
-console.log("Prisma client initialized")
+export const prisma = globalForPrisma.prisma || new PrismaClient({ 
+  adapter,
+  log: [
+    { level: 'error', emit: 'stdout' },
+    { level: 'warn', emit: 'stdout' },
+  ]
+})
+console.log("✅ Prisma client initialized successfully")
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma
 
