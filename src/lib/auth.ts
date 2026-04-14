@@ -19,23 +19,37 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null
+        console.log("Credentials authorize called with email:", credentials?.email ? "provided" : "missing")
+        if (!credentials?.email || !credentials?.password) {
+          console.warn("Authorize failed: missing credentials")
+          return null
+        }
 
         try {
+          console.log("Looking up user in database for email:", credentials.email)
           const user = await prisma.user.findUnique({
             where: { email: credentials.email },
           })
 
-          if (!user || !user.password) {
+          if (!user) {
+            console.warn("Authorize failed: user not found for email:", credentials.email)
             return null
           }
 
+          if (!user.password) {
+            console.warn("Authorize failed: user has no password (likely Google user) for email:", credentials.email)
+            return null
+          }
+
+          console.log("Comparing passwords for user:", user.id)
           const passwordsMatch = await compare(credentials.password, user.password)
 
           if (!passwordsMatch) {
+            console.warn("Authorize failed: password mismatch for user:", user.id)
             return null
           }
 
+          console.log("Credentials authorize successful for user:", user.id)
           return {
             id: user.id,
             email: user.email,
@@ -43,7 +57,12 @@ export const authOptions: NextAuthOptions = {
             isPrime: user.isPrime,
           }
         } catch (e) {
-          console.error("Authorize error", e)
+          console.error("Authorize error details:", {
+            error: e instanceof Error ? e.message : String(e),
+            stack: e instanceof Error ? e.stack : undefined,
+            email: credentials.email,
+            timestamp: new Date().toISOString()
+          })
           return null
         }
       }
@@ -58,25 +77,22 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async session({ session, token }) {
+      console.log("Session callback called for token sub:", token.sub)
       if (session.user && token.sub) {
         (session.user as any).id = token.sub
-
-        try {
-          const user = await prisma.user.findUnique({
-            where: { id: token.sub },
-          })
-          if (user) {
-            (session.user as any).isPrime = user.isPrime
-          }
-        } catch (e) {
-          console.error("Session callback error", e)
-        }
+        ;(session.user as any).isPrime = token.isPrime
+        console.log("Session updated with user data:", { id: token.sub, isPrime: token.isPrime })
+      } else {
+        console.warn("Session callback: missing session.user or token.sub")
       }
       return session
     },
     async jwt({ token, user }) {
+      console.log("JWT callback called", { hasUser: !!user, tokenSub: token.sub })
       if (user) {
         token.sub = user.id
+        token.isPrime = (user as any).isPrime
+        console.log("JWT token updated with user data:", { sub: user.id, isPrime: (user as any).isPrime })
       }
       return token
     }

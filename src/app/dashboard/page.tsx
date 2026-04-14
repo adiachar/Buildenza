@@ -4,14 +4,18 @@ import { redirect } from "next/navigation"
 import { DashboardClient } from "./DashboardClient"
 
 export default async function Dashboard() {
+  console.log("Dashboard page accessed")
   const session = await getServerSession(authOptions)
+  console.log("Dashboard session check:", { hasSession: !!session, userEmail: session?.user?.email })
 
   if (!session) {
+    console.warn("Dashboard access denied: no session")
     redirect("/auth/signin")
   }
 
   // Ensure isPrime is coerced to a boolean properly
   const isPrime = Boolean((session.user as any).isPrime)
+  console.log("Dashboard user prime status:", isPrime)
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-16 font-sans">

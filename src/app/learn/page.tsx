@@ -4,8 +4,11 @@ import Link from "next/link"
 import { Lock, PlayCircle, Unlock, ArrowRight, ShieldCheck, Zap } from "lucide-react"
 
 export default async function Learn() {
+  console.log("Learn page accessed")
   const session = await getServerSession(authOptions)
+  console.log("Learn page session check:", { hasSession: !!session, userEmail: session?.user?.email, isPrime: (session?.user as any)?.isPrime })
   const isPrime = Boolean((session?.user as any)?.isPrime)
+  console.log("Learn page isPrime:", isPrime)
 
   const courses = [
     { 

@@ -19,22 +19,34 @@ export default function SignIn() {
     setIsLoading(true)
     document.body.style.cursor = 'wait'
     
+    console.log("Signin form submitted with email:", email)
     try {
+      console.log("Calling NextAuth signIn")
       const res = await signIn("credentials", {
         email,
         password,
         redirect: false,
       })
 
+      console.log("SignIn response:", { ok: res?.ok, error: res?.error, url: res?.url })
+
     if (res?.ok) {
+      console.log("Signin successful, redirecting to /learn")
       router.push("/learn")
       router.refresh()
     } else {
+      console.warn("Signin failed:", res?.error)
       setErrorMsg("Invalid email or password.")
       setIsLoading(false)
       document.body.style.cursor = 'default'
     }
   } catch (err) {
+      console.error("Signin error details:", {
+        error: err instanceof Error ? err.message : String(err),
+        stack: err instanceof Error ? err.stack : undefined,
+        email,
+        timestamp: new Date().toISOString()
+      })
       setErrorMsg("An unexpected error occurred.")
       setIsLoading(false)
       document.body.style.cursor = 'default'

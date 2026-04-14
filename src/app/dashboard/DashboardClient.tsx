@@ -43,8 +43,10 @@ export function DashboardClient({ isPrime }: { isPrime: boolean }) {
   }, [])
 
   const handleFakeBuy = async (plan: "monthly" | "yearly") => {
+    console.log("Handle fake buy called with plan:", plan)
     setLoading(true)
     try {
+      console.log("Fetching Stripe checkout API")
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -52,14 +54,22 @@ export function DashboardClient({ isPrime }: { isPrime: boolean }) {
       })
       
       const data = await res.json()
+      console.log("Stripe checkout response:", { status: res.status, hasUrl: !!data.url })
 
       if (data.url) {
+        console.log("Redirecting to Stripe checkout URL")
         window.location.href = data.url
       } else {
+        console.error("Stripe checkout failed: no URL in response", data)
         alert("Payment initialization failed")
       }
     } catch (e) {
-      console.error(e)
+      console.error("Stripe checkout error details:", {
+        error: e instanceof Error ? e.message : String(e),
+        stack: e instanceof Error ? e.stack : undefined,
+        plan,
+        timestamp: new Date().toISOString()
+      })
       alert("An error occurred during payment.")
     } finally {
       setLoading(false)
