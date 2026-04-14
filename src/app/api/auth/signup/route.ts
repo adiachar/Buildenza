@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server"
 import { userService } from "@/lib/userService"
-import { hash } from "bcrypt-ts"
-
 export const dynamic = "force-dynamic"
 
 export async function POST(req: Request) {
@@ -33,16 +31,12 @@ export async function POST(req: Request) {
       )
     }
 
-    console.log("Hashing password for new user")
-    // Hash the password using a 5-round threshold (reduces execution time below Cloudflare 50ms CPU limits)
-    const hashedPassword = await hash(password, 5)
-
     console.log("Creating new user in database")
-    // Create the user in the database
+    // Create the user in the database using the raw password (userService handles the hashing)
     const newUser = await userService.create({
       email,
       name: name || email.split('@')[0],
-      password: hashedPassword,
+      password: password,
       isPrime: false, // Explicitly false for new users
     })
 
